@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #333;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #0073aa;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #005f8a;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Find Your Order Documents</h1>
+        <input type="text" id="searchInput" placeholder="Enter your Order Number">
+        <button onclick="searchOrder()">Search</button>
+        <div id="result"></div>
+        <div id="orderStatus"></div>
+    </div>
+
+    <script>
+       const scriptURL = "https://script.google.com/macros/s/AKfycbya-8rxuXV1PR2eUNyesLung5tMMhtkfeUmSZKxO6fakTpE4vG8QcMWIJTKtGNjSJkLzQ/exec";
+
+        function searchOrder() {
+            let query = document.getElementById("searchInput").value.trim();
+            let resultDiv = document.getElementById("result");
+            let statusDiv = document.getElementById("orderStatus");
+
+            if (query) {
+                let folderURL = `https://drive.google.com/drive/folders/1Nq9x9mpPbCelDXmbc2B_eeVd2UkW5Sfs/${encodeURIComponent(query)}`;
+                
+                fetch(folderURL, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            resultDiv.innerHTML = `<a href="${folderURL}" target="_blank">Open Order Folder</a>`;
+                        } else {
+                            resultDiv.innerHTML = "No order folder found. Please check your order number.";
+                        }
+                    })
+                    .catch(() => {
+                        resultDiv.innerHTML = "No order folder found. Please check your order number.";
+                    });
+
+                // Fetch Order Status from Google Sheets
+                fetch(`${scriptURL}?order=${query}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        statusDiv.innerHTML = `<p><strong>Order Status:</strong> ${data}</p>`;
+                    })
+                    .catch(() => {
+                        statusDiv.innerHTML = "<p>Unable to fetch order status.</p>";
+                    });
+            } else {
+                resultDiv.innerHTML = "Please enter a valid order number.";
+                statusDiv.innerHTML = "";
+            }
+        }
+    </script>
+</body>
+</html>
